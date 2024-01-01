@@ -9,14 +9,20 @@ import android.provider.MediaStore
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -28,38 +34,47 @@ fun VoiceButton(modifier: Modifier = Modifier) {
 
     var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     var fileUri by remember { mutableStateOf<Uri?>(null) }
-
-    FloatingActionButton(
-        onClick = {},
-        interactionSource = interactionSource,
+    Box(
         modifier = modifier
-            .background(backgroundColor, CircleShape)
-            .size(56.dp)
+            .background(Color.Black)
+            .fillMaxWidth()  // Fills the width of the parent
+            .fillMaxHeight() // Fills the height of the parent
+            .padding(32.dp), // Optional padding
+        contentAlignment = Alignment.BottomCenter // Centers the FAB inside the Box
     ) {
-        Text("Record")
-
-        LaunchedEffect(isPressed) {
-            if (isPressed) {
-                fileUri = createFileUri(context)
-                mediaRecorder = MediaRecorder(context).apply {
-                    setAudioSource(MediaRecorder.AudioSource.MIC)
-                    setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-                    setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-                    setOutputFile(
-                        context.contentResolver.openFileDescriptor(
-                            fileUri!!,
-                            "w"
-                        )?.fileDescriptor
-                    )
-                }
-                startRecording(mediaRecorder)
-            } else {
-                mediaRecorder?.let {
-                    stopRecording(it)
-                    fileUri?.let { uri ->
-                        playRecording(uri, context)
+        FloatingActionButton(
+            onClick = {},
+            interactionSource = interactionSource,
+            containerColor = backgroundColor,
+            modifier = Modifier.size(96.dp)
+        ) {
+            Text(text = "Hold To\r\nShout",
+                textAlign = TextAlign.Center
+            )
+eckout
+            LaunchedEffect(isPressed) {
+                if (isPressed) {
+                    fileUri = createFileUri(context)
+                    mediaRecorder = MediaRecorder(context).apply {
+                        setAudioSource(MediaRecorder.AudioSource.MIC)
+                        setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+                        setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+                        setOutputFile(
+                            context.contentResolver.openFileDescriptor(
+                                fileUri!!,
+                                "w"
+                            )?.fileDescriptor
+                        )
                     }
-                    mediaRecorder = null
+                    startRecording(mediaRecorder)
+                } else {
+                    mediaRecorder?.let {
+                        stopRecording(it)
+                        fileUri?.let { uri ->
+                            playRecording(uri, context)
+                        }
+                        mediaRecorder = null
+                    }
                 }
             }
         }
@@ -90,7 +105,7 @@ private fun stopRecording(mediaRecorder: MediaRecorder) {
 }
 
 private fun playRecording(fileUri: Uri, context: Context) {
-    val mp = MediaPlayer().apply {
+    MediaPlayer().apply {
         try {
             setDataSource(context, fileUri)
             prepare()
