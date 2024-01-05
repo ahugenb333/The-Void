@@ -7,9 +7,11 @@ import android.media.MediaPlayer.OnCompletionListener
 import android.media.MediaRecorder
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,8 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun VoiceButton(modifier: Modifier = Modifier) {
@@ -47,11 +51,13 @@ fun VoiceButton(modifier: Modifier = Modifier) {
         onClick = {},
         interactionSource = interactionSource,
         containerColor = backgroundColor,
-        modifier = Modifier.size(96.dp)
+        modifier = Modifier.size(128.dp),
+        shape = CircleShape
     ) {
         Text(
             text = "Hold To\r\nShout",
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            style = TextStyle(color = Color.Black, fontSize = 24.sp)
         )
         LaunchedEffect(isPressed) {
             if (isPressed) {
