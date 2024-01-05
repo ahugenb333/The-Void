@@ -21,10 +21,7 @@ import com.ahugenb.tv.ui.theme.TheVoidTheme
 
 class MainActivity : ComponentActivity() {
     private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            // You can use this to update a state if you need to react to the permission result
-        }
-
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -48,7 +45,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Requesting RECORD_AUDIO permission
         requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
     }
 }
