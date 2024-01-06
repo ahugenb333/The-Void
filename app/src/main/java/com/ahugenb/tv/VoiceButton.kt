@@ -16,6 +16,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun VoiceButton(modifier: Modifier = Modifier) {
+fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
     val context = LocalContext.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed = interactionSource.collectIsPressedAsState().value
@@ -85,10 +86,12 @@ fun VoiceButton(modifier: Modifier = Modifier) {
                     fileUri?.let { uri ->
                         mediaPlayer.value = playRecording(uri, context, onCompletionListener = { mp ->
                             mp.release()
+                            isAudioPlaying.value = false
                             isPlaying.value = false
                             mediaPlayer.value = null
                         })
                         isPlaying.value = true
+                        isAudioPlaying.value = true
                     }
                     mediaRecorder = null
                 }

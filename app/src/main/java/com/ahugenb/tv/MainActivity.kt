@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +24,7 @@ import com.ahugenb.tv.ui.theme.TheVoidTheme
 class MainActivity : ComponentActivity() {
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -39,7 +42,9 @@ class MainActivity : ComponentActivity() {
                             .padding(32.dp), // Optional padding
                         contentAlignment = Alignment.BottomCenter // Centers the FAB inside the Box
                     ) {
-                        VoiceButton()
+                        val isAudioPlaying = remember { mutableStateOf(false) }
+                        AnimationLoader(isAudioPlaying)
+                        VoiceButton(isAudioPlaying)
                     }
                 }
             }
