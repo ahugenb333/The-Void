@@ -1,13 +1,11 @@
 package com.ahugenb.tv
 
-import android.content.ContentValues
 import android.content.Context
 import android.media.MediaPlayer
 import android.media.MediaPlayer.OnCompletionListener
 import android.media.MediaRecorder
 import android.net.Uri
-import android.provider.MediaStore
-import androidx.compose.foundation.background
+import android.os.Environment
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.size
@@ -28,30 +26,27 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.io.File
 
 @Composable
 fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
     val context = LocalContext.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed = interactionSource.collectIsPressedAsState().value
-    val isPlaying = remember { mutableStateOf(false) }
-    val backgroundColor =
-        if (isPressed)
-            Color.Red
-        else if (isPlaying.value)
-            Color.Green
-        else
-            Color.White
 
     var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
-    val mediaPlayer = remember { mutableStateOf<MediaPlayer?>(null)}
+    val mediaPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
 
     var fileUri by remember { mutableStateOf<Uri?>(null) }
 
     FloatingActionButton(
         onClick = {},
         interactionSource = interactionSource,
-        containerColor = backgroundColor,
+        containerColor = when {
+            isPressed -> Color.Red
+            isAudioPlaying.value -> Color.Green
+            else -> Color.White
+        },
         modifier = Modifier.size(128.dp),
         shape = CircleShape
     ) {
@@ -62,46 +57,44 @@ fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
         )
         LaunchedEffect(isPressed) {
             if (isPressed) {
-                val mp = mediaPlayer.value
-                if (mp != null && mp.isPlaying) {
-                    mp.stop()
+                //stop any playing audio
+                mediaPlayer.value?.let { mp ->
+                    if (mp.isPlaying) {
+                        mp.stop()
+                    }
                     mp.release()
+                    mediaPlayer.value = null
                 }
-                fileUri = createFileUri(context)
-                mediaRecorder = MediaRecorder(context).apply {
-                    setAudioSource(MediaRecorder.AudioSource.MIC)
-                    setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-                    setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-                    setOutputFile(
-                        context.contentResolver.openFileDescriptor(
-                            fileUri!!,
-                            "w"
-                        )?.fileDescriptor
-                    )
-                }
-                startRecording(mediaRecorder)
+                //start recording
+                val audioFile = getAudioFilePath(context)
+                mediaRecorder = startRecording(context, audioFile)
             } else {
+                //stop recording
                 mediaRecorder?.let {
                     stopRecording(it)
-                    fileUri?.let { uri ->
-                        mediaPlayer.value = playRecording(uri, context, onCompletionListener = { mp ->
+                    mediaRecorder = null
+                    //start playback
+                    val audioFile = getAudioFilePath(context)
+                    mediaPlayer.value =
+                        playRecording(context, audioFile, OnCompletionListener { mp ->
                             mp.release()
                             isAudioPlaying.value = false
-                            isPlaying.value = false
                             mediaPlayer.value = null
                         })
-                        isPlaying.value = true
-                        isAudioPlaying.value = true
-                    }
-                    mediaRecorder = null
+                    isAudioPlaying.value = true
                 }
             }
         }
     }
 }
 
-private fun startRecording(mediaRecorder: MediaRecorder?) {
-    mediaRecorder?.apply {
+
+private fun startRecording(context: Context, audioFile: File): MediaRecorder {
+    return MediaRecorder(context).apply {
+        setAudioSource(MediaRecorder.AudioSource.MIC)
+        setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+        setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+        setOutputFile(audioFile.absolutePath)
         try {
             prepare()
             start()
@@ -123,10 +116,14 @@ private fun stopRecording(mediaRecorder: MediaRecorder) {
     }
 }
 
-private fun playRecording(fileUri: Uri, context: Context, onCompletionListener: OnCompletionListener): MediaPlayer {
+private fun playRecording(
+    context: Context,
+    audioFile: File,
+    onCompletionListener: OnCompletionListener
+): MediaPlayer {
     return MediaPlayer().apply {
         try {
-            setDataSource(context, fileUri)
+            setDataSource(audioFile.absolutePath)
             prepare()
             start()
             setOnCompletionListener(onCompletionListener)
@@ -137,17 +134,11 @@ private fun playRecording(fileUri: Uri, context: Context, onCompletionListener: 
     }
 }
 
-fun createFileUri(context: Context): Uri {
-    val contentValues = ContentValues().apply {
-        put(
-            MediaStore.MediaColumns.DISPLAY_NAME,
-            "MyAudioRecording_${System.currentTimeMillis()}.mp3"
-        )
-        put(MediaStore.MediaColumns.RELATIVE_PATH, "Music/Recordings/")
+private fun getAudioFilePath(context: Context): File {
+    val audioDirectory =
+        File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
+    if (!audioDirectory.exists()) {
+        audioDirectory.mkdirs() // Create the directory if it doesn't exist
     }
-
-    return context.contentResolver.insert(
-        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-        contentValues
-    )!!
+    return File(audioDirectory, "MyAudioRecording.mp3")
 }
