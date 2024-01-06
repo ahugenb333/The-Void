@@ -35,23 +35,16 @@ fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed = interactionSource.collectIsPressedAsState().value
     val isPlaying = remember { mutableStateOf(false) }
-    val backgroundColor =
-        if (isPressed)
-            Color.Red
-        else if (isPlaying.value)
-            Color.Green
-        else
-            Color.White
 
     var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
-    val mediaPlayer = remember { mutableStateOf<MediaPlayer?>(null)}
+    val mediaPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
 
     var fileUri by remember { mutableStateOf<Uri?>(null) }
 
     FloatingActionButton(
         onClick = {},
         interactionSource = interactionSource,
-        containerColor = backgroundColor,
+        containerColor = if (isPressed) Color.Red else if (isPlaying.value) Color.Green else Color.White,
         modifier = Modifier.size(128.dp),
         shape = CircleShape
     ) {
@@ -62,10 +55,12 @@ fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
         )
         LaunchedEffect(isPressed) {
             if (isPressed) {
-                val mp = mediaPlayer.value
-                if (mp != null && mp.isPlaying) {
-                    mp.stop()
+                mediaPlayer.value?.let { mp ->
+                    if (mp.isPlaying) {
+                        mp.stop()
+                    }
                     mp.release()
+                    mediaPlayer.value = null
                 }
                 fileUri = createFileUri(context)
                 mediaRecorder = MediaRecorder(context).apply {
@@ -78,8 +73,8 @@ fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
                             "w"
                         )?.fileDescriptor
                     )
+                    startRecording(this)
                 }
-                startRecording(mediaRecorder)
             } else {
                 mediaRecorder?.let {
                     stopRecording(it)
@@ -99,6 +94,7 @@ fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
         }
     }
 }
+
 
 private fun startRecording(mediaRecorder: MediaRecorder?) {
     mediaRecorder?.apply {
@@ -137,17 +133,15 @@ private fun playRecording(fileUri: Uri, context: Context, onCompletionListener: 
     }
 }
 
-fun createFileUri(context: Context): Uri {
+private fun createFileUri(context: Context): Uri {
+    val filename = "MyAudioRecording.mp3" // Constant filename
     val contentValues = ContentValues().apply {
-        put(
-            MediaStore.MediaColumns.DISPLAY_NAME,
-            "MyAudioRecording_${System.currentTimeMillis()}.mp3"
-        )
+        put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
         put(MediaStore.MediaColumns.RELATIVE_PATH, "Music/Recordings/")
     }
 
     return context.contentResolver.insert(
         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
         contentValues
-    )!!
+    ) ?: throw IllegalStateException("Unable to create file Uri")
 }
