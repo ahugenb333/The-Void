@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = Color.Black // Set the background color to black
                 ) {
+                    //button color state will persist through orientation change
                     val isAudioPlaying = rememberSaveable { mutableStateOf(false) }
                     VoidContent(isAudioPlaying, isLandscape)
                 }
