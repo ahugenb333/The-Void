@@ -1,8 +1,9 @@
-package com.ahugenb.tv
+package com.ahugenb.tv.voidscreen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import com.ahugenb.tv.R
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants

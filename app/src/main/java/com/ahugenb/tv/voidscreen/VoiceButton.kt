@@ -1,10 +1,9 @@
-package com.ahugenb.tv
+package com.ahugenb.tv.voidscreen
 
 import android.content.Context
 import android.media.MediaPlayer
 import android.media.MediaPlayer.OnCompletionListener
 import android.media.MediaRecorder
-import android.net.Uri
 import android.os.Environment
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -36,8 +35,6 @@ fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
 
     var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     val mediaPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
-
-    var fileUri by remember { mutableStateOf<Uri?>(null) }
 
     FloatingActionButton(
         onClick = {},
