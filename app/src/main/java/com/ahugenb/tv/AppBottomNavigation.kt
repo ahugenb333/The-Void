@@ -2,10 +2,21 @@ package com.ahugenb.tv
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Text
@@ -13,47 +24,55 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun AppBottomNavigation(currentScreen: Screen, onItemSelected: (Screen) -> Unit) {
-    BottomAppBar {
-        BottomNavigationItem(
-            label = "The Void",
-            isSelected = currentScreen == Screen.Void,
-            onClick = { onItemSelected(Screen.Void) }
-        )
-        Spacer(Modifier.weight(1f, true))
-        BottomNavigationItem(
-            label = "Shouts",
-            isSelected = currentScreen == Screen.Shouts,
-            onClick = { onItemSelected(Screen.Shouts) }
-        )
+fun AppBottomNavigation(currentScreen: Screen, onNavigationItemSelected: (Screen) -> Unit) {
+    BottomAppBar(
+        containerColor = Color.White,
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BottomNavigationItem(
+                label = "The Void",
+                isSelected = currentScreen == Screen.Void,
+                onClick = { onNavigationItemSelected(Screen.Void) },
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(
+                modifier = Modifier.width(2.dp)
+                    .fillMaxHeight()
+                    .background(color = Color.Black)
+            )
+            BottomNavigationItem(
+                label = "Shouts",
+                isSelected = currentScreen == Screen.Shouts,
+                onClick = { onNavigationItemSelected(Screen.Shouts) },
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
 @Composable
-fun BottomNavigationItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
+fun BottomNavigationItem(label: String, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .background(if (isSelected) Color.Black else Color.Transparent)
-            .size(60.dp) // Adjust size as needed
+        modifier = modifier
+            .wrapContentWidth(align = Alignment.CenterHorizontally)
+            .background(if (isSelected) Color.Black else Color.Transparent, CircleShape)
             .padding(8.dp)
+            .clickable(onClick = onClick) // Remove the indication here
     ) {
         Text(
             text = label,
-            color = if (isSelected) Color.Black else Color.White
+            color = if (isSelected) Color.White else Color.Black
         )
-        if (isSelected) {
-            Box(
-                modifier = Modifier
-                    .size(10.dp)
-                    .background(Color.White, CircleShape)
-                    .align(Alignment.BottomCenter)
-            )
-        }
     }
 }
 
