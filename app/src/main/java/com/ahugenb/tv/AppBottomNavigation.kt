@@ -9,13 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.BottomAppBar
@@ -24,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -45,7 +39,8 @@ fun AppBottomNavigation(currentScreen: Screen, onNavigationItemSelected: (Screen
                 modifier = Modifier.weight(1f)
             )
             Spacer(
-                modifier = Modifier.width(2.dp)
+                modifier = Modifier
+                    .width(2.dp)
                     .fillMaxHeight()
                     .background(color = Color.Black)
             )
@@ -60,7 +55,12 @@ fun AppBottomNavigation(currentScreen: Screen, onNavigationItemSelected: (Screen
 }
 
 @Composable
-fun BottomNavigationItem(label: String, isSelected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun BottomNavigationItem(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier

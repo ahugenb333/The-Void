@@ -17,6 +17,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.io.File
+import java.util.UUID
 
 @Composable
 fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
@@ -35,6 +37,9 @@ fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
 
     var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
     val mediaPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
+
+    // Remember the last recorded file path
+    var lastRecordedFilePath by rememberSaveable { mutableStateOf("") }
 
     FloatingActionButton(
         onClick = {},
@@ -64,6 +69,7 @@ fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
                 }
                 //start recording
                 val audioFile = getAudioFilePath(context)
+                lastRecordedFilePath = audioFile.absolutePath
                 mediaRecorder = startRecording(context, audioFile)
             } else {
                 //stop recording
@@ -71,9 +77,8 @@ fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
                     stopRecording(it)
                     mediaRecorder = null
                     //start playback
-                    val audioFile = getAudioFilePath(context)
                     mediaPlayer.value =
-                        playRecording(context, audioFile, OnCompletionListener { mp ->
+                        playRecording(context, File(lastRecordedFilePath), OnCompletionListener { mp ->
                             mp.release()
                             isAudioPlaying.value = false
                             mediaPlayer.value = null
@@ -132,10 +137,13 @@ private fun playRecording(
 }
 
 private fun getAudioFilePath(context: Context): File {
-    val audioDirectory =
-        File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
-    if (!audioDirectory.exists()) {
-        audioDirectory.mkdirs() // Create the directory if it doesn't exist
+    val recordingsDirectory = File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
+    if (!recordingsDirectory.exists()) {
+        recordingsDirectory.mkdirs()
     }
-    return File(audioDirectory, "MyAudioRecording.mp3")
+
+    val uuid = UUID.randomUUID().toString()
+    val newFileName = "MyAudioRecording_$uuid.mp3"
+
+    return File(recordingsDirectory, newFileName)
 }

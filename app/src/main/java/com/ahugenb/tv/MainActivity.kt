@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ahugenb.tv.shoutscreen.ShoutScreen
 import com.ahugenb.tv.ui.theme.TheVoidTheme
 import com.ahugenb.tv.voidscreen.VoidScreen
 
@@ -56,7 +57,7 @@ fun VoidAppScreen(
         Box(modifier = Modifier.padding(innerPadding)) {
             when (currentScreen) {
                 Screen.Void -> VoidScreen()
-                Screen.Shouts -> LazyColumn {}
+                Screen.Shouts -> ShoutScreen()
             }
         }
     }
