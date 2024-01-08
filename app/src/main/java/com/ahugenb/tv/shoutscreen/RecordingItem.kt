@@ -15,19 +15,19 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.ahugenb.tv.ShoutItem
+import com.ahugenb.tv.ShoutItemUiState
 
 @Composable
-fun RecordingItem(recording: ShoutItem) {
-    val context = LocalContext.current
-    var isPlaying by remember { mutableStateOf(false) }
-    val mediaPlayer = remember { MediaPlayer() }
+fun RecordingItem(
+    uiState: ShoutItemUiState,
+    onPlayClicked: (ShoutItem) -> Unit
+) {
+    val mediaPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
 
     Row(
         modifier = Modifier
@@ -35,23 +35,27 @@ fun RecordingItem(recording: ShoutItem) {
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = recording.fileName, modifier = Modifier.weight(1f))
+        Text(text = uiState.shoutItem.fileName, modifier = Modifier.weight(1f))
 
         IconButton(onClick = {
-            if (isPlaying) {
-                mediaPlayer.stop()
-                isPlaying = false
+            if (uiState.isPlaying) {
+                mediaPlayer.value?.stop()
+                // Notify the ViewModel that playback has stopped
+                onPlayClicked(uiState.shoutItem)
             } else {
-                mediaPlayer.reset()
-                mediaPlayer.setDataSource(recording.filePath)
-                mediaPlayer.prepare()
-                mediaPlayer.start()
-                isPlaying = true
+                // Prepare and start the MediaPlayer
+                mediaPlayer.value = MediaPlayer().apply {
+                    setDataSource(uiState.shoutItem.filePath)
+                    prepare()
+                    start()
+                }
+                // Notify the ViewModel that this item is now playing
+                onPlayClicked(uiState.shoutItem)
             }
         }) {
             Icon(
-                imageVector = if (isPlaying) Icons.Default.Star else Icons.Default.PlayArrow,
-                contentDescription = if (isPlaying) "Pause" else "Play"
+                imageVector = if (uiState.isPlaying) Icons.Default.Star else Icons.Default.PlayArrow,
+                contentDescription = if (uiState.isPlaying) "Pause" else "Play"
             )
         }
 
@@ -66,7 +70,7 @@ fun RecordingItem(recording: ShoutItem) {
 
     DisposableEffect(key1 = mediaPlayer) {
         onDispose {
-            mediaPlayer.release()
+            mediaPlayer.value?.release()
         }
     }
 }

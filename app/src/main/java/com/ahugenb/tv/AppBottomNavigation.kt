@@ -75,7 +75,3 @@ fun BottomNavigationItem(
         )
     }
 }
-
-enum class Screen {
-    Void, Shouts
-}
