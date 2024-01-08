@@ -1,12 +1,12 @@
 package com.ahugenb.tv
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.io.File
 
-class MainViewModel : ViewModel() {
+class MainViewModel : ViewModel(), ShoutItemListener {
     private val _mainState = MutableStateFlow(MainUiState())
     val mainState: StateFlow<MainUiState> = _mainState
 
@@ -21,15 +21,58 @@ class MainViewModel : ViewModel() {
         _shoutItems.value = newItems
     }
 
-    fun onShoutItemClicked(clickedItem: ShoutItem) {
+    fun loadShoutItems(directory: File) {
+        val audioFiles = directory.listFiles()?.filter { it.isFile && it.canRead() } ?: emptyList()
+        val shoutItems = audioFiles.map { file ->
+            ShoutItemUiState(
+                shoutItem = ShoutItem(fileName = file.name, filePath = file.absolutePath),
+                isPlaying = false
+            )
+        }
+        _shoutItems.value = shoutItems
+    }
+
+    override fun onPlayClicked(shoutItem: ShoutItem) {
         val updatedItems = _shoutItems.value.map { uiState ->
-            if (uiState.shoutItem == clickedItem) {
+            if (uiState.shoutItem == shoutItem) {
                 uiState.copy(isPlaying = !uiState.isPlaying)
             } else {
                 uiState.copy(isPlaying = false)
             }
         }
         _shoutItems.value = updatedItems
+    }
+
+    override fun onPlaybackComplete(shoutItem: ShoutItem) {
+        val updatedItems = _shoutItems.value.map { uiState ->
+            if (uiState.shoutItem == shoutItem) {
+                uiState.copy(isPlaying = false)
+            } else {
+                uiState
+            }
+        }
+        _shoutItems.value = updatedItems
+    }
+
+    override fun onEditClicked(shoutItem: ShoutItem) {
+        // Implement edit logic
+    }
+
+    override fun onDeleteClicked(shoutItem: ShoutItem) {
+        // Implement delete logic
+    }
+
+    fun restorePlayingState() {
+        // Identify if any shout item was playing before the orientation change
+        _shoutItems.value.find { it.isPlaying }?.let { currentlyPlaying ->
+            updateShoutItems(_shoutItems.value.map { uiState ->
+                if (uiState.shoutItem == currentlyPlaying.shoutItem) {
+                    uiState.copy(isPlaying = true)
+                } else {
+                    uiState
+                }
+            })
+        }
     }
 }
 
@@ -49,5 +92,11 @@ data class ShoutItemUiState(
 data class ShoutItem(
     val fileName: String,
     val filePath: String,
-    var isPlaying: Boolean = false
 )
+
+interface ShoutItemListener {
+    fun onPlayClicked(shoutItem: ShoutItem)
+    fun onPlaybackComplete(shoutItem: ShoutItem)
+    fun onEditClicked(shoutItem: ShoutItem)
+    fun onDeleteClicked(shoutItem: ShoutItem)
+}

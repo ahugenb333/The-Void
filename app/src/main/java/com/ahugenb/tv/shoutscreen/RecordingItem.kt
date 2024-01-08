@@ -15,19 +15,26 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.ahugenb.tv.ShoutItem
 import com.ahugenb.tv.ShoutItemUiState
+import com.ahugenb.tv.ShoutItemListener
 
 @Composable
 fun RecordingItem(
     uiState: ShoutItemUiState,
-    onPlayClicked: (ShoutItem) -> Unit
+    shoutItemListener: ShoutItemListener
 ) {
-    val mediaPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
+    val mediaPlayer = remember { MediaPlayer().apply {
+        setOnCompletionListener { shoutItemListener.onPlaybackComplete(uiState.shoutItem) }
+    } }
+
+    DisposableEffect(key1 = mediaPlayer) {
+        onDispose {
+            mediaPlayer.release()
+        }
+    }
 
     Row(
         modifier = Modifier
@@ -39,38 +46,28 @@ fun RecordingItem(
 
         IconButton(onClick = {
             if (uiState.isPlaying) {
-                mediaPlayer.value?.stop()
-                // Notify the ViewModel that playback has stopped
-                onPlayClicked(uiState.shoutItem)
+                mediaPlayer.stop()
+                shoutItemListener.onPlaybackComplete(uiState.shoutItem)
             } else {
-                // Prepare and start the MediaPlayer
-                mediaPlayer.value = MediaPlayer().apply {
-                    setDataSource(uiState.shoutItem.filePath)
-                    prepare()
-                    start()
-                }
-                // Notify the ViewModel that this item is now playing
-                onPlayClicked(uiState.shoutItem)
+                mediaPlayer.reset()
+                mediaPlayer.setDataSource(uiState.shoutItem.filePath)
+                mediaPlayer.prepare()
+                mediaPlayer.start()
+                shoutItemListener.onPlayClicked(uiState.shoutItem)
             }
         }) {
             Icon(
                 imageVector = if (uiState.isPlaying) Icons.Default.Star else Icons.Default.PlayArrow,
-                contentDescription = if (uiState.isPlaying) "Pause" else "Play"
+                contentDescription = if (uiState.isPlaying) "Stop" else "Play"
             )
         }
 
-        IconButton(onClick = { /* Implement rename logic */ }) {
-            Icon(Icons.Default.Edit, contentDescription = "Rename")
+        IconButton(onClick = { shoutItemListener.onEditClicked(uiState.shoutItem) }) {
+            Icon(Icons.Default.Edit, contentDescription = "Edit")
         }
 
-        IconButton(onClick = { /* Implement delete logic */ }) {
+        IconButton(onClick = { shoutItemListener.onDeleteClicked(uiState.shoutItem) }) {
             Icon(Icons.Default.Delete, contentDescription = "Delete")
-        }
-    }
-
-    DisposableEffect(key1 = mediaPlayer) {
-        onDispose {
-            mediaPlayer.value?.release()
         }
     }
 }

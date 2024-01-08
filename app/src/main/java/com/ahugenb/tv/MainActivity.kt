@@ -27,13 +27,22 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             val viewModel: MainViewModel = viewModel()
+
+            if (savedInstanceState == null) {
+                val recordingsDirectory = File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
+                viewModel.loadShoutItems(recordingsDirectory)
+            } else {
+                viewModel.restorePlayingState()
+            }
+
             val mainState = viewModel.mainState.collectAsStateWithLifecycle().value
 
             if (mainState.currentScreen == Screen.Shouts) {
                 val recordingsDirectory = File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
-                viewModel.updateShoutItems(loadShoutsFromDirectory(recordingsDirectory))
+                viewModel.loadShoutItems(recordingsDirectory)
             }
 
             TheVoidTheme {
@@ -42,22 +51,12 @@ class MainActivity : ComponentActivity() {
                         currentScreen = mainState.currentScreen,
                         onNavigationItemSelected = viewModel::onNavigationItemSelected,
                         shoutItemsState = viewModel.shoutItems.collectAsStateWithLifecycle().value,
-                        onShoutItemClicked = viewModel::onShoutItemClicked
+                        shoutItemListener = viewModel
                     )
                 }
             }
         }
         requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-    }
-
-    private fun loadShoutsFromDirectory(directory: File): List<ShoutItemUiState> {
-        val audioFiles = directory.listFiles()?.filter { it.isFile && it.canRead() } ?: emptyList()
-        return audioFiles.map { file ->
-            ShoutItemUiState(
-                shoutItem = ShoutItem(fileName = file.name, filePath = file.absolutePath),
-                isPlaying = false
-            )
-        }
     }
 }
 
@@ -66,7 +65,7 @@ fun VoidAppScreen(
     currentScreen: Screen,
     onNavigationItemSelected: (Screen) -> Unit,
     shoutItemsState: List<ShoutItemUiState>,
-    onShoutItemClicked: (ShoutItem) -> Unit
+    shoutItemListener: ShoutItemListener
 ) {
     Scaffold(
         bottomBar = { AppBottomNavigation(currentScreen, onNavigationItemSelected) }
@@ -74,7 +73,7 @@ fun VoidAppScreen(
         Box(modifier = Modifier.padding(innerPadding)) {
             when (currentScreen) {
                 Screen.Void -> VoidScreen()
-                Screen.Shouts -> ShoutScreen(shoutItemsState, onShoutItemClicked)
+                Screen.Shouts -> ShoutScreen(shoutItemsState, shoutItemListener)
             }
         }
     }
