@@ -12,12 +12,18 @@ import java.io.File
 @Composable
 fun ShoutScreen() {
     val context = LocalContext.current
-    val recordings = remember { mutableStateOf(listOf<AudioRecording>()) }
+    val recordings = remember { mutableStateOf(listOf<ShoutItem>()) }
 
     LaunchedEffect(Unit) {
         val recordingsDirectory = File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
         val audioFiles = recordingsDirectory.listFiles()?.filter { it.isFile && it.canRead() }
-        recordings.value = audioFiles?.map { AudioRecording(it.name, it.absolutePath) } ?: emptyList()
+        recordings.value = audioFiles?.map {
+            if (it.name.contains("uuid")) {
+                ShoutItem("Untitled Shout", it.absolutePath)
+            } else {
+                ShoutItem(it.name, it.absolutePath)
+            }
+        } ?: emptyList()
     }
 
     LazyColumn {
@@ -27,7 +33,7 @@ fun ShoutScreen() {
     }
 }
 
-data class AudioRecording(
+data class ShoutItem(
     val fileName: String,
     val filePath: String
 )

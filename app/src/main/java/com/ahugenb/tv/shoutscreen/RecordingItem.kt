@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun RecordingItem(recording: AudioRecording) {
+fun RecordingItem(recording: ShoutItem) {
     val context = LocalContext.current
     var isPlaying by remember { mutableStateOf(false) }
     val mediaPlayer = remember { MediaPlayer() }

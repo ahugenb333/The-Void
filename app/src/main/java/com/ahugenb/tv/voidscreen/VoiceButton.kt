@@ -78,7 +78,7 @@ fun VoiceButton(isAudioPlaying: MutableState<Boolean>) {
                     mediaRecorder = null
                     //start playback
                     mediaPlayer.value =
-                        playRecording(context, File(lastRecordedFilePath), OnCompletionListener { mp ->
+                        playRecording(File(lastRecordedFilePath), OnCompletionListener { mp ->
                             mp.release()
                             isAudioPlaying.value = false
                             mediaPlayer.value = null
@@ -119,7 +119,6 @@ private fun stopRecording(mediaRecorder: MediaRecorder) {
 }
 
 private fun playRecording(
-    context: Context,
     audioFile: File,
     onCompletionListener: OnCompletionListener
 ): MediaPlayer {
@@ -143,7 +142,7 @@ private fun getAudioFilePath(context: Context): File {
     }
 
     val uuid = UUID.randomUUID().toString()
-    val newFileName = "MyAudioRecording_$uuid.mp3"
+    val newFileName = "MyAudioRecording_uuid=$uuid.mp3"
 
     return File(recordingsDirectory, newFileName)
 }
