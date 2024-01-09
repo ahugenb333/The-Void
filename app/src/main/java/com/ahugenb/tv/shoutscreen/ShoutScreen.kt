@@ -6,13 +6,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.ahugenb.tv.ShoutItem
+import com.ahugenb.tv.ShoutItemListener
 
 @Composable
 fun ShoutScreen(
     shoutItems: List<ShoutItem>,
+    shoutItemListener: ShoutItemListener
 ) {
     val mediaPlayer = remember { MediaPlayer() }
     val currentlyPlayingItem = remember { mutableStateOf<ShoutItem?>(null) }
+
+    val shoutToEdit = remember { mutableStateOf<ShoutItem?>(null) }
+    val toEdit = shoutToEdit.value
+    if (toEdit != null) {
+        EditShoutItemDialog(
+            shoutItem = toEdit,
+            existingShoutItems = shoutItems,
+            onDismiss = { },
+            onRenameCompleted = { newName ->
+                shoutItemListener.onEditCompleted(toEdit, newName)
+                shoutToEdit.value = null
+            }
+        )
+    }
 
     LazyColumn {
         items(shoutItems.size) { index ->
@@ -54,9 +70,7 @@ fun ShoutScreen(
                         }
                     }
                 },
-                onEditClicked = {
-                    // Handle edit logic
-                },
+                onEditClicked = { shoutToEdit.value = it },
                 onDeleteClicked = {
                     // Handle delete logic
                 }

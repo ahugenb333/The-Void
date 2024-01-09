@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
                         currentScreen = mainState.currentScreen,
                         onNavigationItemSelected = viewModel::onNavigationItemSelected,
                         shoutItemsState = viewModel.shoutItems.collectAsStateWithLifecycle().value,
+                        shoutItemListener = viewModel
                     )
                 }
             }
@@ -57,7 +58,8 @@ class MainActivity : ComponentActivity() {
 fun VoidAppScreen(
     currentScreen: Screen,
     onNavigationItemSelected: (Screen) -> Unit,
-    shoutItemsState: List<ShoutItem>
+    shoutItemsState: List<ShoutItem>,
+    shoutItemListener: ShoutItemListener
 ) {
     Scaffold(
         bottomBar = { AppBottomNavigation(currentScreen, onNavigationItemSelected) }
@@ -65,7 +67,7 @@ fun VoidAppScreen(
         Box(modifier = Modifier.padding(innerPadding)) {
             when (currentScreen) {
                 Screen.Void -> VoidScreen()
-                Screen.Shouts -> ShoutScreen(shoutItemsState)
+                Screen.Shouts -> ShoutScreen(shoutItemsState, shoutItemListener)
             }
         }
     }

@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class MainViewModel : ViewModel() {
+class MainViewModel : ViewModel(), ShoutItemListener {
     private val _mainState = MutableStateFlow(MainUiState())
     val mainState: StateFlow<MainUiState> = _mainState
 
@@ -35,8 +35,17 @@ class MainViewModel : ViewModel() {
         val audioFiles = directory.listFiles()?.filter { it.isFile && it.canRead() } ?: emptyList()
         return audioFiles.map { file ->
             val name = if (file.name.contains("uuid")) "Untitled Shout" else file.name
-            ShoutItem(fileName = name, filePath = file.absolutePath)
+            ShoutItem(displayName = name, fileName = file.name, filePath = file.absolutePath)
         }
+    }
+
+    override fun onEditCompleted(oldItem: ShoutItem, newItem: ShoutItem) {
+        val mutableShoutItems = _shoutItems.value.toMutableList()
+        mutableShoutItems[mutableShoutItems.indexOf(oldItem)] = newItem
+    }
+
+    override fun onDeleteCompleted(shoutItem: ShoutItem) {
+        //todo
     }
 }
 
@@ -49,6 +58,14 @@ data class MainUiState(
 )
 
 data class ShoutItem(
+    val displayName: String,
     val fileName: String,
     val filePath: String,
 )
+
+interface ShoutItemListener {
+
+    fun onEditCompleted(oldItem: ShoutItem, newItem: ShoutItem)
+
+    fun onDeleteCompleted(shoutItem: ShoutItem)
+}

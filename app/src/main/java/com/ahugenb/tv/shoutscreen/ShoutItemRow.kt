@@ -31,21 +31,21 @@ fun ShoutItemRow(
     item: ShoutItem,
     isPlaying: Boolean,
     onPlayClicked: () -> Unit,
-    onEditClicked: () -> Unit,
-    onDeleteClicked: () -> Unit
+    onEditClicked: (ShoutItem) -> Unit,
+    onDeleteClicked: (ShoutItem) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(56.dp) // Fixed height for LazyColumn Performance
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = item.fileName,
+            text = item.displayName,
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.headlineSmall, // Larger text with standard typography
-            textAlign = TextAlign.Center // Center the text
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center
         )
 
         IconButton(onClick = {
@@ -58,13 +58,13 @@ fun ShoutItemRow(
         }
 
         IconButton(onClick = {
-            onEditClicked()
+            onEditClicked(item)
         }) {
             Icon(Icons.Default.Edit, contentDescription = "Edit")
         }
 
         IconButton(onClick = {
-            onDeleteClicked()
+            onDeleteClicked(item)
         }) {
             Icon(Icons.Default.Delete, contentDescription = "Delete")
         }
