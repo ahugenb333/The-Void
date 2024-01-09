@@ -1,21 +1,65 @@
 package com.ahugenb.tv.shoutscreen
 
-import androidx.compose.foundation.lazy.LazyColumn
+import android.media.MediaPlayer
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import com.ahugenb.tv.ShoutItem
-import com.ahugenb.tv.ShoutItemListener
-import com.ahugenb.tv.ShoutItemUiState
 
 @Composable
 fun ShoutScreen(
-    shoutItemsState: List<ShoutItemUiState>,
-    shoutItemListener: ShoutItemListener
+    shoutItems: List<ShoutItem>,
 ) {
-    LazyColumn {
-        items(shoutItemsState.size) { index ->
-            // Retrieve the item at the current index
-            val uiState = shoutItemsState[index]
-            RecordingItem(uiState, shoutItemListener)
+    val mediaPlayer = remember { MediaPlayer() }
+    val currentlyPlayingItem = remember { mutableStateOf<ShoutItem?>(null) }
+
+    Column {
+        shoutItems.forEach { shoutItem ->
+            ShoutItemRow(
+                item = shoutItem,
+                isPlaying = currentlyPlayingItem.value == shoutItem,
+                onPlayClicked = {
+                    if (currentlyPlayingItem.value == null) {
+                        mediaPlayer.apply {
+                            reset()
+                            setDataSource(shoutItem.filePath)
+                            prepare()
+                            start()
+                            setOnCompletionListener {
+                                // Handle playback completion
+                            }
+                        }
+                        currentlyPlayingItem.value = shoutItem
+                    } else {
+                        if (currentlyPlayingItem.value == shoutItem) {
+                            // If the same item is clicked again, stop playback
+                            mediaPlayer.stop()
+                            mediaPlayer.reset()
+                            currentlyPlayingItem.value = null
+                        } else {
+                            // If a different item is clicked, stop the current playback
+                            mediaPlayer.stop()
+                            mediaPlayer.reset()
+                            mediaPlayer.apply {
+                                setDataSource(shoutItem.filePath)
+                                prepare()
+                                start()
+                                setOnCompletionListener {
+                                    // Handle playback completion
+                                }
+                            }
+                            currentlyPlayingItem.value = shoutItem
+                        }
+                    }
+                },
+                onEditClicked = {
+                    // Handle edit logic
+                },
+                onDeleteClicked = {
+                    // Handle delete logic
+                }
+            )
         }
     }
 }

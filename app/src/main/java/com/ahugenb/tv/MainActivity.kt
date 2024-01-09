@@ -32,18 +32,12 @@ class MainActivity : ComponentActivity() {
             val viewModel: MainViewModel = viewModel()
 
             if (savedInstanceState == null) {
-                val recordingsDirectory = File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
+                val recordingsDirectory =
+                    File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
                 viewModel.loadShoutItems(recordingsDirectory)
-            } else {
-                viewModel.restorePlayingState()
             }
 
             val mainState = viewModel.mainState.collectAsStateWithLifecycle().value
-
-            if (mainState.currentScreen == Screen.Shouts) {
-                val recordingsDirectory = File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
-                viewModel.loadShoutItems(recordingsDirectory)
-            }
 
             TheVoidTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
@@ -51,7 +45,6 @@ class MainActivity : ComponentActivity() {
                         currentScreen = mainState.currentScreen,
                         onNavigationItemSelected = viewModel::onNavigationItemSelected,
                         shoutItemsState = viewModel.shoutItems.collectAsStateWithLifecycle().value,
-                        shoutItemListener = viewModel
                     )
                 }
             }
@@ -64,8 +57,7 @@ class MainActivity : ComponentActivity() {
 fun VoidAppScreen(
     currentScreen: Screen,
     onNavigationItemSelected: (Screen) -> Unit,
-    shoutItemsState: List<ShoutItemUiState>,
-    shoutItemListener: ShoutItemListener
+    shoutItemsState: List<ShoutItem>
 ) {
     Scaffold(
         bottomBar = { AppBottomNavigation(currentScreen, onNavigationItemSelected) }
@@ -73,7 +65,7 @@ fun VoidAppScreen(
         Box(modifier = Modifier.padding(innerPadding)) {
             when (currentScreen) {
                 Screen.Void -> VoidScreen()
-                Screen.Shouts -> ShoutScreen(shoutItemsState, shoutItemListener)
+                Screen.Shouts -> ShoutScreen(shoutItemsState)
             }
         }
     }
