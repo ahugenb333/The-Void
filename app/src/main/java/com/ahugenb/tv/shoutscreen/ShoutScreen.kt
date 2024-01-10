@@ -13,16 +13,19 @@ fun ShoutScreen(
     shoutItems: List<ShoutItem>,
     shoutItemListener: ShoutItemListener
 ) {
-    val mediaPlayer = remember { MediaPlayer() }
-    val currentlyPlayingItem = remember { mutableStateOf<ShoutItem?>(null) }
+    // Initialize ShoutPlayerState
+    val shoutPlayerState = rememberShoutPlayerState()
 
+    // Remember the item that's currently being edited
     val shoutToEdit = remember { mutableStateOf<ShoutItem?>(null) }
+
+    // Edit dialog logic
     val toEdit = shoutToEdit.value
     if (toEdit != null) {
         EditShoutItemDialog(
             shoutItem = toEdit,
             existingShoutItems = shoutItems,
-            onDismiss = { },
+            onDismiss = { shoutToEdit.value = null },
             onRenameCompleted = { newItem ->
                 shoutItemListener.onEditCompleted(newItem)
                 shoutToEdit.value = null
@@ -31,49 +34,16 @@ fun ShoutScreen(
     }
 
     LazyColumn {
-        items(shoutItems.size, key = { shoutItems[it].uuid }) { index ->
+        items(shoutItems.size, key = { index -> shoutItems[index].uuid }) { index ->
             val shoutItem = shoutItems[index]
             ShoutItemRow(
                 item = shoutItem,
-                isPlaying = currentlyPlayingItem.value == shoutItem,
+                shoutPlayerState = shoutPlayerState,
                 onPlayClicked = {
-                    if (currentlyPlayingItem.value == null) {
-                        mediaPlayer.apply {
-                            reset()
-                            setDataSource(shoutItem.filePath)
-                            prepare()
-                            start()
-                            setOnCompletionListener {
-                                currentlyPlayingItem.value = null
-                            }
-                        }
-                        currentlyPlayingItem.value = shoutItem
-                    } else {
-                        if (currentlyPlayingItem.value == shoutItem) {
-                            // If the same item is clicked again, stop playback
-                            mediaPlayer.stop()
-                            mediaPlayer.reset()
-                            currentlyPlayingItem.value = null
-                        } else {
-                            // If a different item is clicked, stop the current playback
-                            mediaPlayer.stop()
-                            mediaPlayer.reset()
-                            mediaPlayer.apply {
-                                setDataSource(shoutItem.filePath)
-                                prepare()
-                                start()
-                                setOnCompletionListener {
-                                    currentlyPlayingItem.value = null
-                                }
-                            }
-                            currentlyPlayingItem.value = shoutItem
-                        }
-                    }
+                    shoutPlayerState.playFile(shoutItem.filePath)
                 },
-                onEditClicked = { shoutToEdit.value = it },
-                onDeleteClicked = {
-                    // Handle delete logic
-                }
+                onEditClicked = { shoutToEdit.value = shoutItem },
+                onDeleteClicked = { shoutItemListener.onDeleteCompleted(shoutItem) }
             )
         }
     }

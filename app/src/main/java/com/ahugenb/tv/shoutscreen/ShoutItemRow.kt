@@ -29,11 +29,15 @@ import com.ahugenb.tv.ShoutItem
 @Composable
 fun ShoutItemRow(
     item: ShoutItem,
-    isPlaying: Boolean,
+    shoutPlayerState: ShoutPlayerState,
     onPlayClicked: () -> Unit,
     onEditClicked: (ShoutItem) -> Unit,
     onDeleteClicked: (ShoutItem) -> Unit
 ) {
+    // Observing the states for recomposition
+    val playerState = shoutPlayerState.playerState.value
+    val isCurrentItemPlaying = playerState.currentlyPlayingFilepath == item.filePath && playerState.isPlaying
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -48,12 +52,13 @@ fun ShoutItemRow(
             textAlign = TextAlign.Center
         )
 
-        IconButton(onClick = {
-            onPlayClicked()
-        }) {
+        IconButton(onClick = onPlayClicked) {
             Icon(
-                imageVector = if (isPlaying) ImageVector.vectorResource(R.drawable.ic_stop_24) else Icons.Default.PlayArrow,
-                contentDescription = if (isPlaying) "Stop" else "Play"
+                imageVector = if (isCurrentItemPlaying)
+                    ImageVector.vectorResource(id = R.drawable.ic_stop_24)
+                else
+                    Icons.Default.PlayArrow,
+                contentDescription = "Play/Pause"
             )
         }
 
@@ -70,7 +75,8 @@ fun ShoutItemRow(
         }
     }
     Spacer(
-        modifier = Modifier.height(1.dp)
+        modifier = Modifier
+            .height(1.dp)
             .fillMaxWidth()
             .background(color = Color.White, shape = RectangleShape)
     )
