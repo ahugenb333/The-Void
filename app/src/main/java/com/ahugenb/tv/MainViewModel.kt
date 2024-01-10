@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.UUID
 
 class MainViewModel : ViewModel(), ShoutItemListener {
     private val _mainState = MutableStateFlow(MainUiState())
@@ -39,9 +40,10 @@ class MainViewModel : ViewModel(), ShoutItemListener {
         }
     }
 
-    override fun onEditCompleted(oldItem: ShoutItem, newItem: ShoutItem) {
-        val mutableShoutItems = _shoutItems.value.toMutableList()
-        mutableShoutItems[mutableShoutItems.indexOf(oldItem)] = newItem
+    override fun onEditCompleted(newItem: ShoutItem) {
+        _shoutItems.value = _shoutItems.value.map { existingItem ->
+            if (existingItem.uuid == newItem.uuid) newItem else existingItem
+        }
     }
 
     override fun onDeleteCompleted(shoutItem: ShoutItem) {
@@ -61,11 +63,12 @@ data class ShoutItem(
     val displayName: String,
     val fileName: String,
     val filePath: String,
+    val uuid: UUID = UUID.randomUUID()
 )
 
 interface ShoutItemListener {
 
-    fun onEditCompleted(oldItem: ShoutItem, newItem: ShoutItem)
+    fun onEditCompleted(newItem: ShoutItem)
 
     fun onDeleteCompleted(shoutItem: ShoutItem)
 }

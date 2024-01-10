@@ -23,15 +23,15 @@ fun ShoutScreen(
             shoutItem = toEdit,
             existingShoutItems = shoutItems,
             onDismiss = { },
-            onRenameCompleted = { newName ->
-                shoutItemListener.onEditCompleted(toEdit, newName)
+            onRenameCompleted = { newItem ->
+                shoutItemListener.onEditCompleted(newItem)
                 shoutToEdit.value = null
             }
         )
     }
 
     LazyColumn {
-        items(shoutItems.size) { index ->
+        items(shoutItems.size, key = { shoutItems[it].uuid }) { index ->
             val shoutItem = shoutItems[index]
             ShoutItemRow(
                 item = shoutItem,

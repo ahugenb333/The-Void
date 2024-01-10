@@ -69,12 +69,11 @@ fun EditShoutItemDialog(
                     val existingNames = existingShoutItems.map { it.displayName }
                     while (existingNames.contains(newName)) {
                         fileCount++
-                        newName = "$finalName ($fileCount)"
+                        newName = "$finalName ($fileCount).mp3"
                     }
 
-                    // Update the shout item's name and filename
-                    val updatedItem = shoutItem.copy(displayName = newName, fileName = newName.plus(".mp3"))
-                    saveUpdatedItem(context, shoutItem.fileName, updatedItem)
+                    val path = saveUpdatedItem(context, shoutItem.fileName, newName)
+                    val updatedItem = shoutItem.copy(displayName = newName, fileName = newName, filePath = path)
                     onRenameCompleted(updatedItem)
                 }
             ) {
@@ -98,17 +97,18 @@ fun CustomDialog(
         }
     }
 }
-fun saveUpdatedItem(context: Context, originalFileName: String, updatedItem: ShoutItem) {
+fun saveUpdatedItem(context: Context, originalFileName: String, newName: String): String {
     val recordingsDirectory = File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
 
     // Path to the original file
     val originalFile = File(recordingsDirectory, originalFileName) // assuming file extension is .mp3
 
     // Path to the new file
-    val newFile = File(recordingsDirectory, updatedItem.fileName)
+    val newFile = File(recordingsDirectory, newName)
 
     // Rename the file if it exists
     if (originalFile.exists()) {
         originalFile.renameTo(newFile)
     }
+    return originalFile.absolutePath
 }
