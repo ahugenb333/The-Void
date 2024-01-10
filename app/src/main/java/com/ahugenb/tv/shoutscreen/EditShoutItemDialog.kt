@@ -110,5 +110,5 @@ fun saveUpdatedItem(context: Context, originalFileName: String, newName: String)
     if (originalFile.exists()) {
         originalFile.renameTo(newFile)
     }
-    return originalFile.absolutePath
+    return newFile.absolutePath
 }
