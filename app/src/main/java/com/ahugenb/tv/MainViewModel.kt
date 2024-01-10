@@ -35,7 +35,7 @@ class MainViewModel : ViewModel(), ShoutItemListener {
     private fun loadShoutsFromDirectory(directory: File): List<ShoutItem> {
         val audioFiles = directory.listFiles()?.filter { it.isFile && it.canRead() } ?: emptyList()
         return audioFiles.map { file ->
-            val name = if (file.name.contains("uuid")) "Untitled Shout" else file.name
+            val name = if (file.name.contains("uuid")) "Untitled Shout" else file.name.removeSuffix(".mp3")
             ShoutItem(displayName = name, fileName = file.name, filePath = file.absolutePath)
         }
     }

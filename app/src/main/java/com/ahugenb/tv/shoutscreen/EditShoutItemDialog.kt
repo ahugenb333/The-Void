@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -64,16 +63,17 @@ fun EditShoutItemDialog(
                     }
 
                     // Check if the name exists among shout items
-                    var newName = finalName
+                    var displayName = finalName
                     var fileCount = 1
                     val existingNames = existingShoutItems.map { it.displayName }
-                    while (existingNames.contains(newName)) {
+                    while (existingNames.contains(displayName)) {
                         fileCount++
-                        newName = "$finalName ($fileCount).mp3"
+                        displayName = "$finalName ($fileCount)"
                     }
+                    val fileName = displayName.plus(".mp3")
 
-                    val path = saveUpdatedItem(context, shoutItem.fileName, newName)
-                    val updatedItem = shoutItem.copy(displayName = newName, fileName = newName, filePath = path)
+                    val path = saveUpdatedItem(context, shoutItem.fileName, fileName)
+                    val updatedItem = shoutItem.copy(displayName = displayName, fileName = fileName, filePath = path)
                     onRenameCompleted(updatedItem)
                 }
             ) {

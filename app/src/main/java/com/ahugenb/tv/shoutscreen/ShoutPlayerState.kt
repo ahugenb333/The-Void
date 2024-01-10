@@ -50,7 +50,7 @@ class ShoutPlayerState(
         }
     }
 
-    private fun stopAndPrepareNewPlayer() {
+    fun stopAndPrepareNewPlayer() {
         mediaPlayer?.apply {
             if (isPlaying) {
                 stop()

@@ -27,6 +27,7 @@ fun ShoutScreen(
             existingShoutItems = shoutItems,
             onDismiss = { shoutToEdit.value = null },
             onRenameCompleted = { newItem ->
+                shoutPlayerState.stopAndPrepareNewPlayer()
                 shoutItemListener.onEditCompleted(newItem)
                 shoutToEdit.value = null
             }
