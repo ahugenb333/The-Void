@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.UUID
 
 class MainViewModel : ViewModel(), ShoutItemListener {
@@ -33,10 +35,37 @@ class MainViewModel : ViewModel(), ShoutItemListener {
     }
 
     private fun loadShoutsFromDirectory(directory: File): List<ShoutItem> {
-        val audioFiles = directory.listFiles()?.filter { it.isFile && it.canRead() } ?: emptyList()
+        val audioFiles = directory.listFiles()
+            ?.filter { it.isFile && it.canRead() }
+            ?.sortedWith(compareByDescending { file ->
+                file.lastModified() // Sort by last modified as a proxy for creation time
+            })
+            ?: emptyList()
+
         return audioFiles.map { file ->
-            val name = if (file.name.contains("uuid")) "Untitled Shout" else file.name.removeSuffix(".mp3")
-            ShoutItem(displayName = name, fileName = file.name, filePath = file.absolutePath)
+            val name = if (file.nameWithoutExtension.contains("uuid")) {
+                "Untitled Shout"
+            } else {
+                file.nameWithoutExtension
+            }
+
+            val uuidString = file.nameWithoutExtension.substringAfterLast("uuid", "")
+            val uuid = if (uuidString.isNotEmpty()) {
+                try {
+                    UUID.fromString(uuidString)
+                } catch (e: IllegalArgumentException) {
+                    UUID.randomUUID() // Generate a new UUID if parsing fails
+                }
+            } else {
+                UUID.randomUUID() // Generate a new UUID for files without UUID
+            }
+
+            ShoutItem(
+                displayName = name,
+                fileName = file.name,
+                filePath = file.absolutePath,
+                uuid = uuid
+            )
         }
     }
 
