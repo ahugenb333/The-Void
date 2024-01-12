@@ -14,6 +14,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.UUID
 
 class MainViewModel : ViewModel(), ShoutItemListener {
+
     private val _mainState = MutableStateFlow(MainUiState())
     val mainState: StateFlow<MainUiState> = _mainState
 

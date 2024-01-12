@@ -5,6 +5,8 @@ import android.media.MediaPlayer
 import android.media.MediaPlayer.OnCompletionListener
 import android.media.MediaRecorder
 import android.os.Environment
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.size
@@ -26,7 +28,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ahugenb.tv.ShoutItem
 import java.io.File
 import java.util.UUID
 
@@ -39,13 +40,13 @@ fun VoiceButton(
     val isPressed = interactionSource.collectIsPressedAsState().value
 
     var mediaRecorder by remember { mutableStateOf<MediaRecorder?>(null) }
+    var isRecording by remember { mutableStateOf(false) }
     val mediaPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
-
-    // Remember the last recorded file path
     var lastRecordedFilePath by rememberSaveable { mutableStateOf("") }
+    var recordingStartTime by remember { mutableStateOf(0L) }
 
     FloatingActionButton(
-        onClick = {},
+        onClick = { /* Implement if needed for a short tap */ },
         interactionSource = interactionSource,
         containerColor = when {
             isPressed -> Color.Red
@@ -60,39 +61,81 @@ fun VoiceButton(
             textAlign = TextAlign.Center,
             style = TextStyle(color = Color.Black, fontSize = 24.sp)
         )
-        LaunchedEffect(isPressed) {
-            if (isPressed) {
-                //stop any playing audio
-                mediaPlayer.value?.let { mp ->
-                    if (mp.isPlaying) {
-                        mp.stop()
+    }
+
+    LaunchedEffect(isPressed) {
+        if (isPressed) {
+            isRecording = true
+            mediaPlayer.value?.stopAndRelease()
+            mediaPlayer.value = null
+            val audioFile = getAudioFilePath(context)
+            lastRecordedFilePath = audioFile.absolutePath
+            recordingStartTime = System.currentTimeMillis()
+            mediaRecorder = startRecording(context, audioFile)
+        } else if (isRecording) {
+            isRecording = false
+            val recordingDuration = System.currentTimeMillis() - recordingStartTime
+            mediaRecorder?.safeStopRecording()
+            mediaRecorder = null
+
+            if (recordingDuration >= 1000) {  // Check if recording duration is at least 1 second
+                mediaPlayer.value = playRecording(File(lastRecordedFilePath), onCompletionListener = { mp ->
+                    mp.stopAndRelease()
+                    isAudioPlaying.value = false
+                }).apply {
+                    setOnErrorListener { _, _, _ ->
+                        stopAndRelease()
+                        isAudioPlaying.value = false
+                        true // Error was handled
                     }
-                    mp.release()
-                    mediaPlayer.value = null
                 }
-                //start recording
-                val audioFile = getAudioFilePath(context)
-                lastRecordedFilePath = audioFile.absolutePath
-                mediaRecorder = startRecording(context, audioFile)
+                isAudioPlaying.value = true
             } else {
-                //stop recording
-                mediaRecorder?.let {
-                    stopRecording(it)
-                    mediaRecorder = null
-                    //start playback
-                    mediaPlayer.value =
-                        playRecording(File(lastRecordedFilePath), OnCompletionListener { mp ->
-                            mp.release()
-                            isAudioPlaying.value = false
-                            mediaPlayer.value = null
-                        })
-                    isAudioPlaying.value = true
-                }
+                isAudioPlaying.value = false
+                File(lastRecordedFilePath).delete()  // Delete the short recording
+                Toast.makeText(
+                    context,
+                    "Please shout for at least 1 second!",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
 }
 
+// MediaPlayer extension function
+private fun MediaPlayer.stopAndRelease() {
+    try {
+        if (isPlaying) {
+            stop()
+        }
+    } catch (e: IllegalStateException) {
+        // Log the exception or handle it as necessary.
+        // This can happen if MediaPlayer is in an incorrect state.
+    } finally {
+        try {
+            release()
+        } catch (e: IllegalStateException) {
+            // Log the exception or handle it as necessary.
+        }
+    }
+}
+
+// MediaRecorder extension function
+private fun MediaRecorder?.safeStopRecording() {
+    this?.apply {
+        try {
+            stop()
+        } catch (e: IllegalStateException) {
+            // Handle exception for stop() called in an invalid state
+        } catch (e: RuntimeException) {
+            // Handle runtime exception during stop()
+        } finally {
+            reset()
+            release()
+        }
+    }
+}
 
 private fun startRecording(context: Context, audioFile: File): MediaRecorder {
     return MediaRecorder(context).apply {
@@ -107,17 +150,6 @@ private fun startRecording(context: Context, audioFile: File): MediaRecorder {
             e.printStackTrace()
             // Handle exception
         }
-    }
-}
-
-private fun stopRecording(mediaRecorder: MediaRecorder) {
-    try {
-        mediaRecorder.stop()
-        mediaRecorder.reset()
-        mediaRecorder.release()
-    } catch (e: Exception) {
-        e.printStackTrace()
-        // Handle exception
     }
 }
 
@@ -139,7 +171,8 @@ private fun playRecording(
 }
 
 private fun getAudioFilePath(context: Context): File {
-    val recordingsDirectory = File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
+    val recordingsDirectory =
+        File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
     if (!recordingsDirectory.exists()) {
         recordingsDirectory.mkdirs()
     }

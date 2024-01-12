@@ -31,11 +31,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val viewModel: MainViewModel = viewModel()
 
-            if (savedInstanceState == null) {
-                val recordingsDirectory =
-                    File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
-                viewModel.loadShoutItems(recordingsDirectory)
-            }
+            val recordingsDirectory =
+                File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
+            viewModel.loadShoutItems(recordingsDirectory)
 
             val mainState = viewModel.mainState.collectAsStateWithLifecycle().value
 
