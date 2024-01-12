@@ -76,7 +76,22 @@ class MainViewModel : ViewModel(), ShoutItemListener {
     }
 
     override fun onDeleteCompleted(shoutItem: ShoutItem) {
-        //todo
+        viewModelScope.launch {
+            // Delete the file from the storage
+            withContext(Dispatchers.IO) {
+                try {
+                    val fileToDelete = File(shoutItem.filePath)
+                    if (fileToDelete.exists()) {
+                        fileToDelete.delete()
+                    }
+                } catch (e: Exception) {
+                    // Handle any exceptions, e.g., log an error message
+                }
+            }
+
+            // Update the list of ShoutItems
+            _shoutItems.value = _shoutItems.value.filter { it.uuid != shoutItem.uuid }
+        }
     }
 }
 
