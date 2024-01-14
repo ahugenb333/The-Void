@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,7 +44,7 @@ fun VoiceButton(
     var isRecording by remember { mutableStateOf(false) }
     val mediaPlayer = remember { mutableStateOf<MediaPlayer?>(null) }
     var lastRecordedFilePath by rememberSaveable { mutableStateOf("") }
-    var recordingStartTime by remember { mutableStateOf(0L) }
+    var recordingStartTime by remember { mutableLongStateOf(0L) }
 
     FloatingActionButton(
         onClick = { /* Implement if needed for a short tap */ },
