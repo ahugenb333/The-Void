@@ -1,28 +1,25 @@
 package com.ahugenb.tv
 
 import android.Manifest
-import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Environment
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ahugenb.tv.shoutscreen.ShoutScreen
 import com.ahugenb.tv.ui.theme.TheVoidTheme
+import com.ahugenb.tv.voidscreen.VoidScreen
+import java.io.File
 
 class MainActivity : ComponentActivity() {
     private val requestPermissionLauncher =
@@ -30,18 +27,24 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            TheVoidTheme {
-                val configuration = LocalConfiguration.current
-                val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = Color.Black // Set the background color to black
-                ) {
-                    //button color state will persist through orientation change
-                    val isAudioPlaying = rememberSaveable { mutableStateOf(false) }
-                    VoidContent(isAudioPlaying, isLandscape)
+        setContent {
+            val viewModel: MainViewModel = viewModel()
+
+            val recordingsDirectory =
+                File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), "Recordings")
+            viewModel.loadShoutItems(recordingsDirectory)
+
+            val mainState = viewModel.mainState.collectAsStateWithLifecycle().value
+
+            TheVoidTheme {
+                Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
+                    VoidAppScreen(
+                        currentScreen = mainState.currentScreen,
+                        onNavigationItemSelected = viewModel::onNavigationItemSelected,
+                        shoutItemsState = viewModel.shoutItems.collectAsStateWithLifecycle().value,
+                        shoutItemListener = viewModel
+                    )
                 }
             }
         }
@@ -50,27 +53,20 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun VoidContent(isAudioPlaying: MutableState<Boolean>, isLandscape: Boolean) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row(
-            modifier = Modifier.weight(if (isLandscape) 1f else 0.8f),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            AnimationLoader(isAudioPlaying)
-        }
-        Row(
-            modifier = Modifier.weight(if (isLandscape) 1f else 0.2f),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            VoiceButton(isAudioPlaying)
+fun VoidAppScreen(
+    currentScreen: Screen,
+    onNavigationItemSelected: (Screen) -> Unit,
+    shoutItemsState: List<ShoutItem>,
+    shoutItemListener: ShoutItemListener
+) {
+    Scaffold(
+        bottomBar = { AppBottomNavigation(currentScreen, onNavigationItemSelected) }
+    ) { innerPadding ->
+        Box(modifier = Modifier.padding(innerPadding)) {
+            when (currentScreen) {
+                Screen.Void -> VoidScreen()
+                Screen.Shouts -> ShoutScreen(shoutItemsState, shoutItemListener)
+            }
         }
     }
 }

@@ -2,4 +2,10 @@
 <resources>
 
     <style name="Theme.TheVoid" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.App.Splash" parent="Theme.TheVoid">
+        <!-- Set the window background to black for the splash screen -->
+        <item name="android:windowBackground">@color/black</item>
+        <!-- Other style configurations -->
+    </style>
+
 </resources>
