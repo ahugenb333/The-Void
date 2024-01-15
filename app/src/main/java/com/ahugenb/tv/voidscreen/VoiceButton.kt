@@ -1,6 +1,8 @@
 package com.ahugenb.tv.voidscreen
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaPlayer.OnCompletionListener
 import android.media.MediaRecorder
@@ -29,6 +31,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import java.io.File
 import java.util.UUID
 
@@ -65,14 +68,25 @@ fun VoiceButton(
     }
 
     LaunchedEffect(isPressed) {
+
         if (isPressed) {
-            isRecording = true
-            mediaPlayer.value?.stopAndRelease()
-            mediaPlayer.value = null
-            val audioFile = getAudioFilePath(context)
-            lastRecordedFilePath = audioFile.absolutePath
-            recordingStartTime = System.currentTimeMillis()
-            mediaRecorder = startRecording(context, audioFile)
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                isRecording = true
+                mediaPlayer.value?.stopAndRelease()
+                mediaPlayer.value = null
+                val audioFile = getAudioFilePath(context)
+                lastRecordedFilePath = audioFile.absolutePath
+                recordingStartTime = System.currentTimeMillis()
+                mediaRecorder = startRecording(context, audioFile)
+            } else {
+                // Permission is denied, handle accordingly
+                Toast.makeText(
+                    context,
+                    "Recording permission is required to use this feature",
+                    Toast.LENGTH_SHORT
+                ).show()
+                // You can also disable the recording button or take other actions as needed
+            }
         } else if (isRecording) {
             isRecording = false
             val recordingDuration = System.currentTimeMillis() - recordingStartTime
