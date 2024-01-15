@@ -18,6 +18,8 @@ fun ShoutScreen(
 
     // Remember the item that's currently being edited
     val shoutToEdit = remember { mutableStateOf<ShoutItem?>(null) }
+    // Remember the item that's currently being considered for deletion
+    val shoutToDelete = remember { mutableStateOf<ShoutItem?>(null) }
 
     // Edit dialog logic
     val toEdit = shoutToEdit.value
@@ -33,6 +35,19 @@ fun ShoutScreen(
             }
         )
     }
+    // Confirm delete dialog logic
+    val toDelete = shoutToDelete.value
+    if (toDelete != null) {
+        ConfirmDeleteDialog(
+            shoutItem = toDelete,
+            onDismiss = { shoutToDelete.value = null },
+            onDeleteConfirmed = { item ->
+                shoutItemListener.onDeleteCompleted(item)
+                shoutToDelete.value = null
+            }
+        )
+    }
+
 
     LazyColumn {
         items(shoutItems, key = { item -> item.uuid }) { shoutItem ->
@@ -43,7 +58,7 @@ fun ShoutScreen(
                     shoutPlayerState.playFile(shoutItem.filePath)
                 },
                 onEditClicked = { shoutToEdit.value = shoutItem },
-                onDeleteClicked = { shoutItemListener.onDeleteCompleted(shoutItem) }
+                onDeleteClicked = { shoutToDelete.value = shoutItem }
             )
         }
     }
