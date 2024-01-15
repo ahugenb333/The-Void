@@ -72,7 +72,7 @@ fun EditShoutItemDialog(
             ) {
                 Button(
                     onClick = {
-                    var finalName = editedName.value.trim()
+                        var finalName = editedName.value.trim()
                         if (finalName.isEmpty()) {
                             finalName = "Untitled Shout"
                         }
