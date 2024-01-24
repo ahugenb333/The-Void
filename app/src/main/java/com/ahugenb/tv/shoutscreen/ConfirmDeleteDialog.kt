@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ahugenb.tv.ShoutItem
 
@@ -28,9 +29,10 @@ fun ConfirmDeleteDialog(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Are you sure you want to delete ${shoutItem.displayName}?",
+                text = "Are you sure you want to delete\r\n${shoutItem.displayName}?",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
+                textAlign = TextAlign.Center
             )
 
             Row(
