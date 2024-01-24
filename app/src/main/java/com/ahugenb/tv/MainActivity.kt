@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ahugenb.tv.shoutscreen.ShoutScreen
+import com.ahugenb.tv.ui.theme.Black
 import com.ahugenb.tv.ui.theme.TheVoidTheme
 import com.ahugenb.tv.voidscreen.VoidScreen
 import java.io.File
@@ -38,7 +39,7 @@ class MainActivity : ComponentActivity() {
             val mainState = viewModel.mainState.collectAsStateWithLifecycle().value
 
             TheVoidTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = Color.Black) {
+                Surface(modifier = Modifier.fillMaxSize(), color = Black) {
                     VoidAppScreen(
                         currentScreen = mainState.currentScreen,
                         onNavigationItemSelected = viewModel::onNavigationItemSelected,
